@@ -1,0 +1,9 @@
+.DS_Store
+.cache
+.compilation
+.configuration
+._*
+.buildpath
+.project
+.settings
+.vagrant*
