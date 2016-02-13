@@ -55,4 +55,7 @@ if [ ! -e "/var/www/html/wp-config.php" ]; then
   chown -R www-data:www-data /var/www/html
   ln -s /vagrant/src /var/www/html/wp-content/plugins/xmaps
   $WP_CLI plugin activate xmaps
+  $WP_CLI plugin install \
+      https://downloads.wordpress.org/plugin/disable-wordpress-updates.zip --activate
+  $WP_CLI plugin delete $($WP_CLI plugin list --status=inactive --field=name)
 fi
