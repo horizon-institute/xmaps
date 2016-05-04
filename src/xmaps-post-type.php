@@ -70,6 +70,7 @@ class XMapsPostType {
 				'custom-fields',
 				'comments',
 			),
+			'taxonomies' => array( 'category', 'post_tag' ),
 			'hierarchical' => false,
 			'public' => true,
 			'show_ui' => true,
@@ -82,7 +83,7 @@ class XMapsPostType {
 			'exclude_from_search' => false,
 			'publicly_queryable' => true,
 			'rewrite' => $rewrite,
-			'capability_type' => 'page',
+			'capability_type' => 'post',
 		);
 		register_post_type( 'map-object', $args );
 	}

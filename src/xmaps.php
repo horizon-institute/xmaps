@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	throw new Exception( 'Access error' );
 }
 
+require_once 'xmaps-constants.php';
 require_once 'xmaps-database.php';
 require_once 'xmaps-post-type.php';
 require_once 'xmaps-settings.php';
@@ -65,6 +66,9 @@ add_action( 'admin_enqueue_scripts', function() {
 			'1.0.0',
 		true );
 		wp_enqueue_script( 'xmaps-google-maps' );
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_style( 'xmaps-admin', plugin_dir_url( __FILE__ ) 
+				. 'css/admin.css', false, '1.0.0' );
 	}
 } );
 ?>
