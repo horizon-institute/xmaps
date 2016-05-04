@@ -40,9 +40,27 @@ class XMapsDatabase {
 		$tbl_name = $wpdb->get_blog_prefix( $blog_id ) 
 		. self::LOCATION_TABLE_SUFFIX;
 		$sql = $wpdb->prepare( 
-		"SELECT id, reference_id, reference_type, ST_AsBinary(location) AS location
+		"SELECT id, reference_id, reference_type, ST_AsText(location) AS location
 		FROM $tbl_name WHERE reference_id = %d", $reference_id );
 		return $wpdb->get_results( $sql, OBJECT );
+	}
+	
+	public static function add_or_update_map_object_location( 
+			$reference_id,
+			$reference_type,
+			$location ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( $blog_id )
+		. self::LOCATION_TABLE_SUFFIX;
+		$wpdb->delete( $tbl_name, array( 'reference_id' => $reference_id ), array( '%d' ) );
+		if(empty($location)) {
+			return;
+		}
+		$sql = $wpdb->prepare(
+		"INSERT INTO $tbl_name (reference_id, reference_type, location)
+		VALUES (%d, '%s', ST_GeomFromText('%s'))", 
+		array( $reference_id, $reference_type, $location));
+		$wpdb->query( $sql );
 	}
 }
 /**SET ANSI_NULLS ON

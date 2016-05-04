@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once 'xmaps-constants.php';
 require_once 'xmaps-database.php';
+require_once 'xmaps-map-object.php';
 require_once 'xmaps-post-type.php';
 require_once 'xmaps-settings.php';
 
@@ -52,9 +53,14 @@ add_action( 'admin_menu', function() {
 	XMapsSettings::add_option_pages();
 } );
 
-add_action( 'add_meta_boxes' , function() {
+add_action( 'add_meta_boxes', function() {
 	XMapsPostType::add_meta_boxes();
 } );
+
+add_action( 'save_post_map-object', function( $post_id, $post, $update ) {
+	XMapsMapObject::on_save_map_object( $post_id, $post, $update );
+}, 10, 3 );
+
 
 add_action( 'admin_enqueue_scripts', function() {
 	$akey = get_option( 'xmaps-google-maps-api-key' );
@@ -65,8 +71,21 @@ add_action( 'admin_enqueue_scripts', function() {
 			false,
 			'1.0.0',
 		true );
+		wp_register_script(
+			'wicket',
+			plugin_dir_url( __FILE__ ) . 'js/lib/wicket.js',
+			false,
+			'1.3.2',
+		true );
+		wp_register_script(
+			'wicket-gmap3',
+			plugin_dir_url( __FILE__ ) . 'js/lib/wicket-gmap3.js',
+			array( 'wicket' ),
+			'1.3.2',
+		true );
 		wp_enqueue_script( 'xmaps-google-maps' );
 		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'wicket-gmap3' );
 		wp_enqueue_style( 'xmaps-admin', plugin_dir_url( __FILE__ ) 
 				. 'css/admin.css', false, '1.0.0' );
 	}

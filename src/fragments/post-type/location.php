@@ -8,24 +8,17 @@
  * @link https://github.com/horizon-institute/xmaps
  */
 
-require_once XMAPS_LIB_DIR . '/lib/geoPHP/geoPHP.inc';
-$locations = array_map( function( $e ) {
-	$geom = geoPHP::load($e->location, 'wkb');
-	$geom->setSRID( XMAPS_SRID );
-	$e->location = $geom;
-	return $e;
-}, XMapsDatabase::get_map_object_locations( get_the_ID() ) );
-
-foreach($locations as $loc) {
-	// Display points/areas
-	//print_r($loc);
-	//print_r($p->y() / (10**8));
+$locations = XMapsDatabase::get_map_object_locations( get_the_ID() );
+$location = '';
+if(!empty($locations)) {
+	$location = $locations[0];
 }
 ?>
 <div id="xmaps-controls">
 	<span id="xmaps-add-point" class="js-link">Add Point</span> |
 	<span id="xmaps-add-area" class="js-link">Add Area</span>
 </div>
+<input type="hidden" name="xmaps-location-entry" id="xmaps-location-entry" value="<?= $location->location; ?>" />
 <div id="xmaps-map" style="height: 480px;"></div>
 <script>
  jQuery( function( $ ) {
@@ -41,6 +34,13 @@ foreach($locations as $loc) {
 	        };
         var map_div = $("#xmaps-map");
 		var map = new google.maps.Map(map_div.get(0), conf);
+		var location = "<?= $location->location; ?>";
+		if(location != null && location != "") {
+			var wkt = new Wkt.Wkt();
+			wkt.read(location);
+			var marker = wkt.toObject();
+			marker.setMap(map);
+		}
 
 		$("#xmaps-add-point").click(function() {
 			var con = jQuery(document.createElement("div"));
@@ -50,11 +50,13 @@ foreach($locations as $loc) {
 			var infowin = new google.maps.InfoWindow({
 				"content" : con.get(0)
 			});
-			var ok = jQuery(document.createElement("span"));
+			var ok = $(document.createElement("span"));
 			ok.text("OK").addClass("js-link").click(function() {
 				infowin.close();
-				var pos = marker.getPosition(); //TODO Save the point
-				marker.setMap(null);
+				var wkt = new Wkt.Wkt();
+				wkt.fromObject(marker);
+				$("#xmaps-location-entry").val(wkt.write());
+				marker.setDraggable(false);
 			});
 			var cancel = jQuery(document.createElement("span"));
 			cancel.text("Cancel").addClass("js-link").click(function() {
