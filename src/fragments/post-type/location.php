@@ -15,10 +15,16 @@ if(!empty($locations)) {
 }
 ?>
 <div id="xmaps-controls">
-	<span id="xmaps-add-point" class="js-link">Add Point</span> |
-	<span id="xmaps-add-area" class="js-link">Add Area</span>
+	Drawing mode: 
+	<select id="xmaps-controls-mode">
+		<option value="point">Point</option>
+		<option value="area">Area</option>
+	</select>
+	<button id="xmaps-controls-draw">Draw</button>
+	<button id="xmaps-controls-clear">Clear Map</button>
 </div>
-<input type="hidden" name="xmaps-location-entry" id="xmaps-location-entry" value="<?= $location->location; ?>" />
+<input type="hidden" name="xmaps-location-entry" id="xmaps-location-entry" 
+		value="<?= $location->location; ?>" />
 <div id="xmaps-map" style="height: 480px;"></div>
 <script>
  jQuery( function( $ ) {
@@ -34,66 +40,92 @@ if(!empty($locations)) {
 	        };
         var map_div = $("#xmaps-map");
 		var map = new google.maps.Map(map_div.get(0), conf);
+		var markers = [];
 		var location = "<?= $location->location; ?>";
 		if(location != null && location != "") {
 			var wkt = new Wkt.Wkt();
 			wkt.read(location);
 			var marker = wkt.toObject();
 			marker.setMap(map);
+			markers.push(marker);
 		}
 
-		$("#xmaps-add-point").click(function() {
-			var con = jQuery(document.createElement("div"));
-			var marker = new google.maps.Marker({
-				"draggable" : true
+		var clear_map = function() {
+			google.maps.event.clearInstanceListeners(map);
+			$.each(markers, function(i, e) {
+				e.setMap(null);
 			});
-			var infowin = new google.maps.InfoWindow({
-				"content" : con.get(0)
+			markers = [];
+			$("#xmaps-location-entry").val("");
+			map.setOptions({
+				"draggableCursor": null
 			});
-			var ok = $(document.createElement("span"));
-			ok.text("OK").addClass("js-link").click(function() {
-				infowin.close();
+		};
+
+		var draw_point = function() {
+			map.setOptions({
+				"draggableCursor": "crosshair"
+			});
+			var l;
+			l = google.maps.event.addListener(map, "click", function(event) {
+				google.maps.event.removeListener(l);
+				map.setOptions({
+					"draggableCursor": null
+				});
+				var marker = new google.maps.Marker({
+					"draggable" : true,
+					"map" : map,
+					"position" : event.latLng
+				});
+				markers.push(marker);
 				var wkt = new Wkt.Wkt();
 				wkt.fromObject(marker);
 				$("#xmaps-location-entry").val(wkt.write());
-				marker.setDraggable(false);
+				marker.addListener("dragend", function() {
+					var wkt = new Wkt.Wkt();
+					wkt.fromObject(marker);
+					$("#xmaps-location-entry").val(wkt.write());
+				});		
 			});
-			var cancel = jQuery(document.createElement("span"));
-			cancel.text("Cancel").addClass("js-link").click(function() {
-				infowin.close();
-				marker.setMap(null);
-			});
-			con.append(ok).append(jQuery("<span> | </span>")).append(cancel);
-			google.maps.event.addListener(infowin, "closeclick", function() {
-				marker.setMap(null);
-			});
-			marker.setMap(map);
-			marker.setPosition(map.getCenter());
-			infowin.open(map, marker);
-		});
+		};
 
-		$("#xmaps-add-area").click(function() {
-			var markers = [];
+		var draw_area = function() {
+			map.setOptions({
+				"draggableCursor": "crosshair"
+			});
 			var path = new google.maps.MVCArray;
 			var poly = new google.maps.Polygon({
 				"strokeWeight" : 3,
 				"fillColor" : "#5555FF"
 			});
 			poly.setMap(map);
+			markers.push(poly);
 			poly.setPaths(new google.maps.MVCArray([path]));
 			google.maps.event.addListener(map, "click", function(event) {
 				var i = path.length;
 				path.insertAt(i, event.latLng);
-				var marker = new google.maps.Marker({
-					"position" : event.latLng,
-					"map" : map,
-					"draggable" : true
-				});
-				markers.push(marker);
-				google.maps.event.addListener(marker, "dragend", function() {
-					path.setAt(i, marker.getPosition());
-				});
+				var wkt = new Wkt.Wkt();
+				wkt.fromObject(poly);
+				$("#xmaps-location-entry").val(wkt.write());
 			});
+		};
+
+		$("#xmaps-controls-clear").click(function() {
+			clear_map();
+			return false;
+		});
+
+		$("#xmaps-controls-draw").click(function() {
+			clear_map();
+			switch($("#xmaps-controls-mode").val()) {
+			case "area":
+				draw_area();
+				break;
+			case "point":
+				draw_point();
+				break;
+			}
+			return false;
 		});
 		
 	} );
