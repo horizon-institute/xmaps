@@ -16,14 +16,13 @@ class XMapsMapObject {
 	/**
 	 * Save post metadata when a post is saved.
 	 *
-	 * @param int $post_id The post ID.
+	 * @param int  $post_id The post ID.
 	 * @param post $post The post object.
 	 * @param bool $update Whether this is an existing post being updated or not.
 	 */
 	public static function on_save_map_object( $post_id, $post, $update ) {
 		XMapsDatabase::add_or_update_map_object_location(
-				$post_id, 'map-object', $_REQUEST['xmaps-location-entry'] );
+		$post_id, 'map-object', $_REQUEST['xmaps-location-entry'] );
 	}
-
 }
 ?>

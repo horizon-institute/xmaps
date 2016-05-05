@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin constants
+ * Plugin constants.
  *
  * @package xmaps
  * @author Dominic Price <dominic.price@nottingham.ac.uk>
@@ -8,5 +8,6 @@
  * @link https://github.com/horizon-institute/xmaps
  */
 
- define('XMAPS_SRID', 4326);
- define('XMAPS_LIB_DIR', plugin_dir_path(__FILE__));
+define( 'XMAPS_SRID', 4326 );
+define( 'XMAPS_LIB_DIR', plugin_dir_path( __FILE__ ) );
+?>

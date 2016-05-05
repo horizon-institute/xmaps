@@ -86,8 +86,8 @@ add_action( 'admin_enqueue_scripts', function() {
 		wp_enqueue_script( 'xmaps-google-maps' );
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'wicket-gmap3' );
-		wp_enqueue_style( 'xmaps-admin', plugin_dir_url( __FILE__ ) 
-				. 'css/admin.css', false, '1.0.0' );
+		wp_enqueue_style( 'xmaps-admin', plugin_dir_url( __FILE__ )
+		. 'css/admin.css', false, '1.0.0' );
 	}
 } );
 ?>

@@ -10,7 +10,7 @@
 
 $locations = XMapsDatabase::get_map_object_locations( get_the_ID() );
 $location = '';
-if(!empty($locations)) {
+if ( ! empty( $locations ) ) {
 	$location = $locations[0];
 }
 ?>
@@ -24,24 +24,24 @@ if(!empty($locations)) {
 	<button id="xmaps-controls-clear">Clear Map</button>
 </div>
 <input type="hidden" name="xmaps-location-entry" id="xmaps-location-entry" 
-		value="<?= $location->location; ?>" />
+		value="<?php echo esc_attr( $location->location ); ?>" />
 <div id="xmaps-map" style="height: 480px;"></div>
 <script>
- jQuery( function( $ ) {
+jQuery( function( $ ) {
 		var conf = {
-            "center": new google.maps.LatLng(0, 0),
-            "streetViewControl": false,
-            "zoom": 1,
-            "minZoom": 1,
-            "maxZoom": 20,
-            "mapTypeId": google.maps.MapTypeId.TERRAIN,
-            "panControl": true,
-            "mapTypeControl": true
+			"center": new google.maps.LatLng(0, 0),
+			"streetViewControl": false,
+			"zoom": 1,
+			"minZoom": 1,
+			"maxZoom": 20,
+			"mapTypeId": google.maps.MapTypeId.TERRAIN,
+			"panControl": true,
+			"mapTypeControl": true
 	        };
-        var map_div = $("#xmaps-map");
+		var map_div = $("#xmaps-map");
 		var map = new google.maps.Map(map_div.get(0), conf);
 		var markers = [];
-		var location = "<?= $location->location; ?>";
+		var location = "<?php echo esc_js( $location->location ); ?>";
 		if(location != null && location != "") {
 			var wkt = new Wkt.Wkt();
 			wkt.read(location);
