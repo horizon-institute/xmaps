@@ -45,11 +45,11 @@ class XMapsDatabase {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( $blog_id )
 		. self::LOCATION_TABLE_SUFFIX;
-		return $wpdb->get_results( $wpdb->prepare(
-			'SELECT id, reference_id, reference_type, 
+		$sql = 'SELECT id, reference_id, reference_type, 
 			ST_AsText(location) AS location
-		FROM %s WHERE reference_id = %d',
-		array( $tbl_name, $reference_id ) ), OBJECT );
+		FROM ' . $tbl_name . ' WHERE reference_id = %d';
+		return $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
+		array( $reference_id ) ), OBJECT );
 	}
 
 	/**
@@ -71,35 +71,33 @@ class XMapsDatabase {
 		if ( empty( $location ) ) {
 			return;
 		}
-		$wpdb->query( $wpdb->prepare(
-			'INSERT INTO %s (reference_id, reference_type, location)
-		VALUES (%d, \'%s\', ST_GeomFromText(\'%s\'))',
-		array( $tbl_name, $reference_id, $reference_type, $location ) ) );
+		$sql = 'INSERT INTO ' . $tbl_name .
+			' (reference_id, reference_type, location)
+		VALUES (%d, \'%s\', ST_GeomFromText(\'%s\'))';
+		$wpdb->query( $wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+		array( $reference_id, $reference_type, $location ) ) );
 	}
 
 	/**
 	 * Searches for map object within specified bounds.
 	 *
 	 * @param float $north Northmost bound.
-	 * @param float $south Southmost bound.
 	 * @param float $east Eastmost bound.
+	 * @param float $south Southmost bound.
 	 * @param float $west Westmost bound.
 	 */
 	public static function get_map_objects_in_bounds(
-			$north, $south, $east, $west ) {
+			$north, $east, $south, $west ) {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( $blog_id )
 		. self::LOCATION_TABLE_SUFFIX;
-		$area = "POLYGON(($west $south, $east $south, 
-		$east $north, $west $north, $west $south))";
-		return $wpdb->get_results( $wpdb->prepare(
-			'SELECT id, reference_id, reference_type, 
+		$sql = 'SELECT id, reference_id, reference_type,
 			ST_AsText(location) AS location
-			FROM %s WHERE ST_Intersects(location, 
-		ST_GeomFromText(POLYGON((%F %F, %F %F, 
-		%F %F, %F %F, %F %F))))',
+			FROM ' . $tbl_name . ' WHERE ST_Intersects(location, 
+		ST_GeomFromText(\'POLYGON((%f %f, %f %f, 
+		%f %f, %f %f, %f %f))\'))';
+		return $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
 			array(
-				$tbl_name,
 				$west,
 				$south,
 				$east,
