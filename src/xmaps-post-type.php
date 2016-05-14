@@ -21,12 +21,20 @@ class XMapsPostType {
 		if ( get_option( 'xmaps-google-maps-api-key' ) === false ) {
 			add_meta_box( 'xmaps-location', 'Location', function() {
 				require 'fragments/post-type/nolocation.php';
-			}, 'map-object', 'advanced' );
+			}, 'map-object', 'normal', 'high' );
 		} else {
 			add_meta_box( 'xmaps-location', 'Location', function() {
 				require 'fragments/post-type/location.php';
-			}, 'map-object', 'advanced' );
+			}, 'map-object', 'normal', 'high' );
 		}
+
+		add_meta_box( 'xmaps-collections', 'Collections',
+			function( $post ) {
+					$collections = XMapsDatabase::get_map_object_collections(
+					$post->ID );
+				require 'fragments/post-type/collections.php';
+			},
+		'map-object', 'side', 'default' );
 	}
 
 	/**
@@ -34,6 +42,7 @@ class XMapsPostType {
 	 */
 	public static function register_post_types() {
 		XMapsPostType::register_map_object_type();
+		XMapsPostType::register_map_collection_type();
 	}
 
 	/**
@@ -86,6 +95,58 @@ class XMapsPostType {
 			'capability_type' => 'post',
 		);
 		register_post_type( 'map-object', $args );
+	}
+
+	/**
+	 * Register Map Collection custom post type.
+	 */
+	private static function register_map_collection_type() {
+		$labels = array(
+			'name' => 'Map Collections',
+			'singular_name' => 'Map Collection',
+			'menu_name' => 'Map Collections',
+			'parent_item_colon' => 'Parent Map Collection:',
+			'all_items' => 'All Map Collections',
+			'view_item' => 'View Map Collections',
+			'add_new_item' => 'Add New Map Collection',
+			'add_new' => 'New Map Collection',
+			'edit_item' => 'Edit Map Collection',
+			'update_item' => 'Update Map Collection',
+			'search_items' => 'Search map collections',
+			'not_found' => 'No map collections found',
+			'not_found_in_trash' => 'No map collections found in Trash',
+		);
+		$rewrite = array(
+			'slug' => 'map-collection',
+			'with_front' => false,
+			'pages' => false,
+			'feeds' => true,
+		);
+		$args = array(
+			'labels' => $labels,
+			'supports' => array(
+				'title',
+				'author',
+				'editor',
+				'custom-fields',
+				'comments',
+			),
+			'taxonomies' => array( 'category', 'post_tag' ),
+			'hierarchical' => false,
+			'public' => true,
+			'show_ui' => true,
+			'show_in_menu' => true,
+			'show_in_nav_menus' => true,
+			'show_in_admin_bar' => true,
+			'menu_position' => 5,
+			'can_export' => true,
+			'has_archive' => true,
+			'exclude_from_search' => false,
+			'publicly_queryable' => true,
+			'rewrite' => $rewrite,
+			'capability_type' => 'post',
+		);
+		$r = register_post_type( 'map-collection', $args );
 	}
 }
 ?>

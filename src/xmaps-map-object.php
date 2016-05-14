@@ -23,6 +23,8 @@ class XMapsMapObject {
 	public static function on_save_map_object( $post_id, $post, $update ) {
 		XMapsDatabase::add_or_update_map_object_location(
 		$post_id, 'map-object', $_REQUEST['xmaps-location-entry'] );
+		XMapsDatabase::add_or_update_map_object_collections(
+		$post_id, $_REQUEST['xmaps-map-collection-entry'] );
 	}
 }
 ?>
