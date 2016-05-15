@@ -46,6 +46,63 @@ add_action( 'wpmu_new_blog', function( $blog_id ) {
 
 add_action( 'init', function () {
 	XMapsPostType::register_post_types();
+	remove_role( 'xmapper' );
+	add_role( 'xmapper', 'Mapper', array(
+			'read' => true,
+			'upload_files' => true,
+			'publish_xmaps' => true,
+			'read_private_xmaps' => false,
+			'edit_xmaps' => true,
+			'edit_published_xmaps' => true,
+			'edit_others_xmaps' => false,
+			'edit_private_xmaps' => true,
+			'delete_xmaps' => true,
+			'delete_published_xmaps' => true,
+			'delete_others_xmaps' => false,
+			'delete_private_xmaps' => true,
+			'manage_xmaps_tags' => true,
+	));
+	global $wp_roles;
+	$roles = $wp_roles->get_names();
+	foreach ( $roles as $k => $v ) {
+		if ( 'xmapper' == $k ) {
+			continue;
+		}
+		$role = $wp_roles->get_role( $k );
+		if ( $role->has_cap( 'publish_posts' ) ) {
+			$role->add_cap( 'publish_xmaps' );
+		}
+		if ( $role->has_cap( 'read_private_posts' ) ) {
+			$role->add_cap( 'read_private_xmaps' );
+		}
+		if ( $role->has_cap( 'edit_posts' ) ) {
+			$role->add_cap( 'edit_xmaps' );
+		}
+		if ( $role->has_cap( 'edit_published_posts' ) ) {
+			$role->add_cap( 'edit_published_xmaps' );
+		}
+		if ( $role->has_cap( 'edit_others_posts' ) ) {
+			$role->add_cap( 'edit_others_xmaps' );
+		}
+		if ( $role->has_cap( 'edit_private_posts' ) ) {
+			$role->add_cap( 'edit_private_xmaps' );
+		}
+		if ( $role->has_cap( 'delete_posts' ) ) {
+			$role->add_cap( 'delete_xmaps' );
+		}
+		if ( $role->has_cap( 'delete_published_posts' ) ) {
+			$role->add_cap( 'delete_published_xmaps' );
+		}
+		if ( $role->has_cap( 'delete_others_posts' ) ) {
+			$role->add_cap( 'delete_others_xmaps' );
+		}
+		if ( $role->has_cap( 'delete_private_posts' ) ) {
+			$role->add_cap( 'delete_private_xmaps' );
+		}
+		if ( $role->has_cap( 'manage_categories' ) ) {
+			$role->add_cap( 'manage_xmaps_tags' );
+		}
+	}
 }, 0 );
 
 add_action( 'admin_init', function() {

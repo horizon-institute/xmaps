@@ -41,8 +41,50 @@ class XMapsPostType {
 	 * Register custom post types.
 	 */
 	public static function register_post_types() {
-		XMapsPostType::register_map_object_type();
-		XMapsPostType::register_map_collection_type();
+		self::register_xmaps_taxonomy();
+		self::register_map_object_type();
+		self::register_map_collection_type();
+	}
+
+	/**
+	 * Register a new taxonomy for map objects and collections.
+	 */
+	private static function register_xmaps_taxonomy() {
+		$labels = array(
+				'name'	=> 'Tags',
+				'singular_name' => 'Tag',
+				'search_items' => 'Search Tags',
+				'popular_items' => 'Popular Tags',
+				'all_items' => 'All Tags',
+				'parent_item' => null,
+				'parent_item_colon' => null,
+				'edit_item' => 'Edit Tag',
+				'update_item' => 'Update Tag',
+				'add_new_item' => 'Add New Tag',
+				'new_item_name' => 'New Tag Name',
+				'separate_items_with_commas' => 'Separate tags with commas',
+				'add_or_remove_items' => 'Add or remove tags',
+				'choose_from_most_used' => 'Choose from the most used tags',
+				'not_found' => 'No tags found.',
+				'menu_name' => 'Tags',
+		);
+
+		$args = array(
+				'hierarchical'          => false,
+				'labels'                => $labels,
+				'show_ui'               => true,
+				'show_in_menu'			=> true,
+				'show_admin_column'     => true,
+				'query_var'             => true,
+				'rewrite'               => array( 'slug' => 'xmaps-tag' ),
+				'capabilities'			=> array(
+						'manage_terms' => 'manage_categories',
+						'edit_terms' => 'manage_xmaps_tags',
+						'delete_terms' => 'manage_xmaps_tags',
+						'assign_terms' => 'manage_xmaps_tags',
+				),
+		);
+		register_taxonomy( 'xmap_tags', null, $args );
 	}
 
 	/**
@@ -79,7 +121,7 @@ class XMapsPostType {
 				'custom-fields',
 				'comments',
 			),
-			'taxonomies' => array( 'category', 'post_tag' ),
+			'taxonomies' => array( 'xmap_tags' ),
 			'hierarchical' => false,
 			'public' => true,
 			'show_ui' => true,
@@ -92,7 +134,8 @@ class XMapsPostType {
 			'exclude_from_search' => false,
 			'publicly_queryable' => true,
 			'rewrite' => $rewrite,
-			'capability_type' => 'post',
+			'capability_type' => array( 'xmap', 'xmaps' ),
+			'map_meta_cap' => true,
 		);
 		register_post_type( 'map-object', $args );
 	}
@@ -131,7 +174,7 @@ class XMapsPostType {
 				'custom-fields',
 				'comments',
 			),
-			'taxonomies' => array( 'category', 'post_tag' ),
+			'taxonomies' => array( 'xmap_tags' ),
 			'hierarchical' => false,
 			'public' => true,
 			'show_ui' => true,
@@ -144,7 +187,8 @@ class XMapsPostType {
 			'exclude_from_search' => false,
 			'publicly_queryable' => true,
 			'rewrite' => $rewrite,
-			'capability_type' => 'post',
+			'capability_type' => array( 'xmap', 'xmaps' ),
+			'map_meta_cap' => true,
 		);
 		$r = register_post_type( 'map-collection', $args );
 	}
