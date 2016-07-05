@@ -13,9 +13,9 @@
  */
 class XMapsDatabase {
 
-	const LOCATION_TABLE_SUFFIX = 'map_object_locations';
+	const LOCATION_TABLE_SUFFIX = 'xmaps_object_locations';
 
-	const COLLECTION_TABLE_SUFFIX = 'map_collections';
+	const COLLECTION_TABLE_SUFFIX = 'xmaps_collections';
 
 	/**
 	 * Creates custom tables for the specified blog.
@@ -199,6 +199,25 @@ class XMapsDatabase {
 			$wpdb->query( $wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
 			array( $id, $map_object_id ) ) );
 		}
+	}
+
+	public static function get_collection_map_objects( $collection_id ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )
+		. self::COLLECTION_TABLE_SUFFIX;
+		$sql = 'SELECT map_object_id FROM ' . $tbl_name . ' WHERE collection_id = %d';
+		$ids = $wpdb->get_col( // WPCS: unprepared SQL ok.
+			$wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+			array( $collection_id ) ), 0
+		);
+		$result = array();
+		foreach ( $ids as $id ) {
+			$result[] = array(
+					get_post( $id ),
+					self::get_map_object_locations( $id )[0],
+			);
+		}
+		return $result;
 	}
 }
 ?>
