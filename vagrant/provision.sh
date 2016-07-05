@@ -53,7 +53,8 @@ if [ ! -e "/var/www/html/wp-config.php" ]; then
     --admin_password="password" \
     --admin_email="nouser@example.com"
   chown -R www-data:www-data /var/www/html
-  ln -s /vagrant/src /var/www/html/wp-content/plugins/xmaps
+  ln -s /vagrant/src/plugin /var/www/html/wp-content/plugins/xmaps
+  ln -s /vagrant/src/theme /var/www/html/wp-content/themes/xmaps
   $WP_CLI plugin activate xmaps
   $WP_CLI plugin install \
       https://downloads.wordpress.org/plugin/disable-wordpress-updates.zip --activate
