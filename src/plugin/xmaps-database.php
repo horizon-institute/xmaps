@@ -201,6 +201,12 @@ class XMapsDatabase {
 		}
 	}
 
+	/**
+	 * Gets all map objects in a collection.
+	 *
+	 * @param integer $collection_id Collection ID.
+	 * @return array Map objects in collection.
+	 */
 	public static function get_collection_map_objects( $collection_id ) {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )

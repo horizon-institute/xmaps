@@ -1,11 +1,1 @@
 @CHARSET "UTF-8";
-
-.js-link {
-	color: rgb(0, 115, 170);
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-.js-link:HOVER {
-	color: rgb(0, 160, 210);
-}

@@ -9,5 +9,4 @@
  */
 
 define( 'XMAPS_SRID', 4326 );
-define( 'XMAPS_LIB_DIR', plugin_dir_path( __FILE__ ) );
 ?>

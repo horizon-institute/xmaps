@@ -22,14 +22,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	throw new Exception( 'Access error' );
 }
 
+require_once 'lib/geoPHP-1.2/geoPHP.inc';
+spl_autoload_register( function( $class ) {
+	@include 'lib/phpgeo-1.3.2/src/'
+	. str_replace( '\\', DIRECTORY_SEPARATOR, $class ) . '.php';
+} );
 require_once 'lib/UUID.php';
 use RobotSnowfall\UUID;
 require_once 'xmaps-constants.php';
 require_once 'xmaps-ajax.php';
 require_once 'xmaps-database.php';
+require_once 'xmaps-geo.php';
 require_once 'xmaps-map-object.php';
 require_once 'xmaps-post-type.php';
 require_once 'xmaps-settings.php';
+require_once 'xmaps-wa-api.php';
+require_once 'xmaps-user.php';
 
 register_activation_hook( __FILE__,  function() {
 	XMapsDatabase::create_tables( null );
@@ -154,21 +162,46 @@ add_action( 'wp_enqueue_scripts', function() {
 	$akey = get_option( 'xmaps-google-maps-api-key' );
 	if ( $akey ) {
 		wp_register_script(
-			'xmaps-google-maps',
+			'google-maps',
 			"https://maps.googleapis.com/maps/api/js?key=$akey",
 			false,
 			'1.0.0',
 		true );
 		wp_register_script(
-			'xmaps-xmap',
-			plugin_dir_url( __FILE__ ) . 'js/xmap.js',
-			array( 'xmaps-google-maps', 'jquery' ),
+			'markerclusterer',
+			plugin_dir_url( __FILE__ ) . 'js/lib/markerclusterer.js',
+			array( 'google-maps' ),
 			'1.0.0',
 		true );
-		wp_localize_script( 'xmaps-xmap', 'XMAPS', array(
+		wp_register_script(
+			'wicket',
+			plugin_dir_url( __FILE__ ) . 'js/lib/wicket.js',
+			false,
+			'1.3.2',
+		true );
+		wp_register_script(
+			'wicket-gmap3',
+			plugin_dir_url( __FILE__ ) . 'js/lib/wicket-gmap3.js',
+			array( 'wicket' ),
+			'1.3.2',
+		true );
+		wp_register_script(
+			'xmaps',
+			plugin_dir_url( __FILE__ ) . 'js/xmaps.js',
+			false,
+			'1.0.0',
+		true );
+		wp_register_script(
+			'xmaps-map',
+			plugin_dir_url( __FILE__ ) . 'js/xmaps-map.js',
+			array( 'xmaps', 'wicket-gmap3', 'markerclusterer', 'jquery' ),
+			'1.0.0',
+		true );
+		wp_localize_script( 'xmaps-map', 'XMAPS', array(
 			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'pluginurl' => plugin_dir_url( __FILE__ ),
 		) );
-		wp_enqueue_script( 'xmaps-xmap' );
+		wp_enqueue_script( 'xmaps-map' );
 
 	}
 } );
@@ -197,4 +230,27 @@ add_shortcode( 'xmap', function( $attrs ) {
 			';
 } );
 
+add_filter( 'query_vars', function( $vars ) {
+	$vars[] = 'id';
+	$vars[] = 'key';
+	$vars[] = 'lat';
+	$vars[] = 'lon';
+	return $vars;
+});
+
+add_action( 'parse_request', function( $wp ) {
+	if ( strpos( $wp->request, 'api/' ) === 0 ) {
+		if ( XMapsWAAPI::parse_request( $wp ) ) {
+			exit();
+		}
+	}
+} );
+
+add_action( 'edit_user_profile', function( $user ) {
+	XMapsUser::show_profile_fields( $user );
+} );
+
+add_action( 'show_user_profile', function( $user ) {
+	XMapsUser::show_profile_fields( $user );
+} );
 ?>
