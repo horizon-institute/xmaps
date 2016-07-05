@@ -235,6 +235,9 @@ add_filter( 'query_vars', function( $vars ) {
 	$vars[] = 'key';
 	$vars[] = 'lat';
 	$vars[] = 'lon';
+	$vars[] = 'acc';
+	$vars[] = 'user-id';
+	$vars[] = 'collection-id';
 	return $vars;
 });
 

@@ -17,7 +17,7 @@ class XMapsWAAPI {
 	 * Parses an API request and calls the correct API function.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	public static function parse_request( $wp ) {
 		if ( ! self::check_api_key( $wp ) ) {
@@ -67,7 +67,7 @@ class XMapsWAAPI {
 	 * Parses collection requests and determines the correct function to call.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function collections( $wp ) {
 		if ( isset( $wp->query_vars['id'] )
@@ -98,7 +98,7 @@ class XMapsWAAPI {
 	 * @param float   $lat Origin latitude.
 	 * @param float   $lon Origin longitude.
 	 * @param WP      $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function collection_with_proximity( $id, $lat, $lon, $wp ) {
 		$post = get_post( $id );
@@ -146,7 +146,7 @@ class XMapsWAAPI {
 	 *
 	 * @param integer $id Collection ID.
 	 * @param WP      $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function collection( $id, $wp ) {
 		$post = get_post( $id );
@@ -176,7 +176,7 @@ class XMapsWAAPI {
 	 * Get all collections.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function all_collections( $wp ) {
 		$cs = get_posts( array(
@@ -214,7 +214,7 @@ class XMapsWAAPI {
 	 * @param float $lat Origin latitude.
 	 * @param float $lon Origin longitude.
 	 * @param WP    $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function all_collections_by_proximity( $lat, $lon, $wp ) {
 		$cs = get_posts( array(
@@ -269,7 +269,7 @@ class XMapsWAAPI {
 	 * To be implemented.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function posts( $wp ) {
 		return true;
@@ -279,7 +279,7 @@ class XMapsWAAPI {
 	 * To be implemented.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function content( $wp ) {
 		return true;
@@ -289,7 +289,7 @@ class XMapsWAAPI {
 	 * To be implemented.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function find( $wp ) {
 		return true;
@@ -299,7 +299,7 @@ class XMapsWAAPI {
 	 * To be implemented.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function history( $wp ) {
 		return true;
@@ -309,20 +309,50 @@ class XMapsWAAPI {
 	 * To be implemented.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function sun( $wp ) {
 		return true;
 	}
 
 	/**
-	 * To be implemented.
+	 * Logs a user's location.
 	 *
 	 * @param WP $wp Wordpress object.
-	 * @return mixed Results.
+	 * @return boolean True if the request was handled.
 	 */
 	private static function location( $wp ) {
-		return true;
+		if ( isset( $wp->query_vars['lat'] )
+				&& isset( $wp->query_vars['lon'] )
+				&& isset( $wp->query_vars['acc'] )
+				&& isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['collection-id'] ) ) {
+
+			$collection = get_post( $wp->query_vars['collection-id'] );
+			if ( ! $collection ) {
+				return false;
+			}
+
+			$user = XMapsUser::get_user_by_api_key( $wp->query_vars['key'] );
+			if ( $user->id != $wp->query_vars['user-id'] ) {
+				return false;
+			}
+
+			$geom = new Point(
+				$wp->query_vars['lon'],
+			$wp->query_vars['lat'] );
+			$geom->setSRID( XMAPS_SRID );
+			$wkt = new WKT();
+			$location = $wkt->write( $geom );
+			XMapsDatabase::log_location(
+				$user->id,
+				$wp->query_vars['key'],
+				$wp->query_vars['collection-id'],
+				$location,
+			floatval( $wp->query_vars['acc'] ) );
+			return true;
+		}
+		return false;
 	}
 }
 ?>
