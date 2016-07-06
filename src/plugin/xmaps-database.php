@@ -176,12 +176,14 @@ class XMapsDatabase {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
 		. self::LOCATION_TABLE_SUFFIX;
-		$sql = 'SELECT id, reference_id, reference_type,
-			ST_AsText(location) AS location
-			FROM ' . $tbl_name . ' WHERE ST_Intersects(location, 
-		ST_GeomFromText(\'POLYGON((%f %f, %f %f, 
+		$sql = 'SELECT l.id, l.reference_id, l.reference_type,
+			ST_AsText(l.location) AS location, p.post_title
+			FROM ' . $tbl_name . ' l
+			LEFT JOIN ' . $wpdb->posts . ' p ON p.id = l.reference_id
+			WHERE ST_Intersects(l.location, 
+			ST_GeomFromText(\'POLYGON((%f %f, %f %f, 
 		%f %f, %f %f, %f %f))\'))';
-		return $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
+		$results = $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
 			array(
 				$west,
 				$south,
@@ -195,6 +197,10 @@ class XMapsDatabase {
 				$south,
 			)
 		), OBJECT );
+		foreach ( $results as $result ) {
+			$result->permalink = get_permalink( $result->reference_id );
+		}
+		return $results;
 	}
 
 	/**

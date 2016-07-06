@@ -9,7 +9,7 @@
 
 var XMAPS = XMAPS || {}
 
-XMAPS.XMap = function( element ) {
+XMAPS.ObjectXMap = function( element ) {
 	jQuery( function( $ ) {
 
 		var mapconf = {
@@ -32,6 +32,25 @@ XMAPS.XMap = function( element ) {
 
 		var map = new google.maps.Map( element.get( 0 ), mapconf );
 		var clusterer = new MarkerClusterer( map, [], clusterconf );
+		google.maps.event.addListener( clusterer, "clusterclick", function( cluster ) {
+			var dialog = $( document.createElement( 'div' ) );
+			dialog.attr( "id", "xmaps-map-overlay" );
+			var ul = $( document.createElement( 'ul' ) );
+			dialog.append( ul );
+			dialog.css( {
+				"overflow" : "scroll"
+			} );
+			dialog.dialog( {
+				"modal" : true,
+				"width" : ( $( window ).width() * 0.9 ),
+				"height" : ( $( window ).height() * 0.9 )
+			} );
+			$.each(cluster.getMarkers(), function(i, e) {
+				var mo = e.map_object;
+				ul.append( $("<li><a href=\"" + mo.permalink
+				+ "\">" + mo.post_title + "</a></li>") );
+			});
+		} );
 
 		(function() {
 
@@ -67,6 +86,7 @@ XMAPS.XMap = function( element ) {
 							var wkt = new Wkt.Wkt();
 							wkt.read( e.location );
 							var m = wkt.toObject();
+							m.map_object = e;
 							if ( m instanceof google.maps.Polygon ) {
 								var bounds = new google.maps.LatLngBounds()
 								m.getPath().forEach( function( element, index ) { bounds.extend( element ) } );
@@ -76,7 +96,6 @@ XMAPS.XMap = function( element ) {
 							}
 							markers.push( clusterer.addMarker( m ) );
 						});
-						clusterer.addMarkers( markers );
 					}
 				);
 			} );

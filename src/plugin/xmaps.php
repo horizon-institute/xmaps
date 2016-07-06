@@ -202,7 +202,9 @@ add_action( 'wp_enqueue_scripts', function() {
 			'pluginurl' => plugin_dir_url( __FILE__ ),
 		) );
 		wp_enqueue_script( 'xmaps-map' );
-
+		wp_enqueue_script( 'jquery-ui-dialog' );
+		wp_enqueue_style( 'jquery-ui-black-tie',
+		'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/black-tie/jquery-ui.min.css' );
 	}
 } );
 
@@ -214,7 +216,7 @@ add_action('wp_ajax_nopriv_xmaps.get_map_objects_in_bounds', function() {
 	XMapsAJAX::get_map_objects_in_bounds();
 } );
 
-add_shortcode( 'xmap', function( $attrs ) {
+add_shortcode( 'xmap-objects', function( $attrs ) {
 	$attrs = shortcode_atts( array(
 			'width' => '100%',
 			'height' => '480px',
@@ -224,7 +226,7 @@ add_shortcode( 'xmap', function( $attrs ) {
 			. '; height:' . $attrs['height'] . '"></div>
 			<script>
 			jQuery(function($) {
-				XMAPS.XMap($("#xmap-' . $uuid . '"));
+				XMAPS.ObjectXMap($("#xmap-' . $uuid . '"));
 			});
 			</script>
 			';
