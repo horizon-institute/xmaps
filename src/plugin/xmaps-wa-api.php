@@ -277,22 +277,25 @@ class XMapsWAAPI {
 				&& isset( $wp->query_vars['lon'] )
 				&& isset( $wp->query_vars['acc'] ) ) {
 			return self::get_all_map_posts_in_collection_with_proximity(
+				$wp,
 				$wp->query_vars['collection-id'],
 				$wp->query_vars['lat'],
 			$wp->query_vars['lon']);
 		} else if ( isset( $wp->query_vars['collection-id'] ) ) {
 			return self::get_all_map_posts_in_collection(
-			$wp->query_vars['collection-id'] );
+			$wp, $wp->query_vars['collection-id'] );
 		} else if ( isset( $wp->query_vars['post-id'] )
 				&& isset( $wp->query_vars['lat'] )
 				&& isset( $wp->query_vars['lon'] )
 				&& isset( $wp->query_vars['acc'] ) ) {
 			return self::get_specific_map_post_with_proximity(
+				$wp,
 				$wp->query_vars['post-id'],
 				$wp->query_vars['lat'],
 			$wp->query_vars['lon']);
 		} else if ( isset( $wp->query_vars['post-id'] ) ) {
-			return self::get_specific_map_post( $wp->query_vars['post-id'] );
+			return self::get_specific_map_post(
+			$wp, $wp->query_vars['post-id'] );
 		} else {
 			return false;
 		}
@@ -301,10 +304,12 @@ class XMapsWAAPI {
 	/**
 	 * Get all map posts in a collection.
 	 *
+	 * @param WP      $wp Wordpress object.
 	 * @param integer $collection_id Collection ID.
 	 * @return boolean True if the request was handled.
 	 */
-	private static function get_all_map_posts_in_collection( $collection_id ) {
+	private static function get_all_map_posts_in_collection(
+			$wp, $collection_id ) {
 		$posts = XMapsDatabase::get_collection_map_objects( $collection_id );
 		$results = array();
 		foreach ( $posts as $post ) {
@@ -317,6 +322,18 @@ class XMapsWAAPI {
 					'display_name' => $user->display_name,
 					'post_date_gmt' => $post->post_date_gmt,
 			);
+
+			if ( isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['period'] ) ) {
+				$found = XMapsDatabase::has_post_been_found(
+					$post->ID,
+					$wp->query_vars['user-id'],
+				$wp->query_vars['period']);
+				if ( $found ) {
+					$obj['found'] = $found;
+				}
+			}
+
 			$results[] = $obj;
 		}
 		header( 'Content-Type: application/json' );
@@ -330,13 +347,14 @@ class XMapsWAAPI {
 	/**
 	 * Get all map posts in a collection, including proximity.
 	 *
+	 * @param WP      $wp Wordpress object.
 	 * @param integer $collection_id Collection ID.
 	 * @param float   $lat Latitude.
 	 * @param float   $lon Longitude.
 	 * @return boolean True if the request was handled.
 	 */
 	private static function get_all_map_posts_in_collection_with_proximity(
-			$collection_id, $lat, $lon ) {
+			$wp, $collection_id, $lat, $lon ) {
 		$posts = XMapsDatabase::get_collection_map_objects( $collection_id );
 		$results = array();
 		foreach ( $posts as $post ) {
@@ -370,6 +388,17 @@ class XMapsWAAPI {
 				$obj['type'] = $closest->geometryType();
 			}
 
+			if ( isset( $wp->query_vars['user-id'] )
+					&& isset( $wp->query_vars['period'] ) ) {
+				$found = XMapsDatabase::has_post_been_found(
+					$post->ID,
+					$wp->query_vars['user-id'],
+				$wp->query_vars['period']);
+				if ( $found ) {
+					$obj['found'] = $found;
+				}
+			}
+
 			$results[] = $obj;
 		}
 		header( 'Content-Type: application/json' );
@@ -383,10 +412,11 @@ class XMapsWAAPI {
 	/**
 	 * Get a specific map post.
 	 *
+	 * @param WP      $wp Wordpress object.
 	 * @param integer $post_id Post ID.
 	 * @return boolean True if the request was handled.
 	 */
-	private static function get_specific_map_post( $post_id ) {
+	private static function get_specific_map_post( $wp, $post_id ) {
 		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return false;
@@ -402,6 +432,17 @@ class XMapsWAAPI {
 				'post_date_gmt' => $post->post_date_gmt,
 		);
 
+		if ( isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['period'] ) ) {
+			$found = XMapsDatabase::has_post_been_found(
+				$post_id,
+				$wp->query_vars['user-id'],
+			$wp->query_vars['period']);
+			if ( $found ) {
+				$obj['found'] = $found;
+			}
+		}
+
 		header( 'Content-Type: application/json' );
 		echo json_encode( array(
 				'data' => $obj,
@@ -413,13 +454,14 @@ class XMapsWAAPI {
 	/**
 	 * Get a specific map post including proxity.
 	 *
+	 * @param WP      $wp Wordpress object.
 	 * @param integer $post_id Post ID.
 	 * @param float   $lat Latitude.
 	 * @param float   $lon Longitude.
 	 * @return boolean True if the request was handled.
 	 */
 	private static function get_specific_map_post_with_proximity(
-			$post_id, $lat, $lon ) {
+			$wp, $post_id, $lat, $lon ) {
 		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return false;
@@ -453,6 +495,17 @@ class XMapsWAAPI {
 			$obj['distance'] = $closest_dist;
 			$obj['bearing'] = XMapsGeo::bearing( $origin, $closest );
 			$obj['type'] = $closest->geometryType();
+		}
+
+		if ( isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['period'] ) ) {
+			$found = XMapsDatabase::has_post_been_found(
+				$post_id,
+				$wp->query_vars['user-id'],
+			$wp->query_vars['period']);
+			if ( $found ) {
+				$obj['found'] = $found;
+			}
 		}
 
 		header( 'Content-Type: application/json' );

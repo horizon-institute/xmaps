@@ -328,7 +328,6 @@ class XMapsDatabase {
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )
 		. self::FINDS_TABLE_SUFFIX;
 
-		$wpdb->show_errors();
 		$sql = 'SELECT 
 		p.id as ID,
 		p.post_title,
@@ -349,6 +348,29 @@ class XMapsDatabase {
 			array( $user_id, $period ) )
 		);
 		return $results;
+	}
+
+	/**
+	 * Determines whether a post has been found by a user.
+	 *
+	 * @param integer $post_id Post ID.
+	 * @param integer $user_id User ID.
+	 * @param integer $period Time period to search in minutes.
+	 * @return mixed False if the post has not been found,
+	 * most recent timestamp otherwise
+	 */
+	public static function has_post_been_found( $post_id, $user_id, $period ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )
+		. self::FINDS_TABLE_SUFFIX;
+		$sql = 'SELECT timestamp from ' . $tbl_name . ' WHERE
+		post_id = %d AND user_id = %d 
+		AND timestamp >= DATE_SUB(NOW(), INTERVAL %d MINUTE)
+		ORDER BY timestamp DESC LIMIT 1';
+		return $wpdb->get_var( // WPCS: unprepared SQL ok.
+			$wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+			array( $post_id, $user_id, $period ) )
+		);
 	}
 }
 ?>
