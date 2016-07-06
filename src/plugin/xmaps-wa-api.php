@@ -276,13 +276,34 @@ class XMapsWAAPI {
 	}
 
 	/**
-	 * To be implemented.
+	 * Get content of a map post.
 	 *
 	 * @param WP $wp Wordpress object.
 	 * @return boolean True if the request was handled.
 	 */
 	private static function content( $wp ) {
-		return true;
+		if ( isset( $wp->query_vars['post-id'] ) ) {
+
+			$post = get_post( $wp->query_vars['post-id'] );
+			if ( ! $post ) {
+				return false;
+			}
+
+			$obj = array(
+					'ID' => $post->ID,
+					'post_content' => $post->post_content,
+					'post_title' => $post->post_title,
+					'post_metadata' => get_post_meta( $post->ID ),
+			);
+
+			header( 'Content-Type: application/json' );
+			echo json_encode( array(
+				'data' => $obj,
+				'request' => '/' . $wp->request . '?'. $_SERVER['QUERY_STRING'],
+			) );
+			return true;
+		}
+		return false;
 	}
 
 	/**
