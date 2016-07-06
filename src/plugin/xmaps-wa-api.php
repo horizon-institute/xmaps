@@ -286,23 +286,55 @@ class XMapsWAAPI {
 	}
 
 	/**
-	 * To be implemented.
+	 * Log a find.
 	 *
 	 * @param WP $wp Wordpress object.
 	 * @return boolean True if the request was handled.
 	 */
 	private static function find( $wp ) {
-		return true;
+		if ( isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['post-id'] ) ) {
+
+			$post = get_post( $wp->query_vars['post-id'] );
+			if ( ! $post ) {
+				return false;
+			}
+
+			$user = XMapsUser::get_user_by_api_key( $wp->query_vars['key'] );
+			if ( $user->id != $wp->query_vars['user-id'] ) {
+				return false;
+			}
+
+			XMapsDatabase::log_find(
+				$user->id,
+				$wp->query_vars['key'],
+			$wp->query_vars['post-id'] );
+
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * To be implemented.
+	 * Get all found map posts.
 	 *
 	 * @param WP $wp Wordpress object.
 	 * @return boolean True if the request was handled.
 	 */
 	private static function history( $wp ) {
-		return true;
+		if ( isset( $wp->query_vars['user-id'] )
+				&& isset( $wp->query_vars['period'] ) ) {
+
+			$results = XMapsDatabase::get_find_history(
+			$wp->query_vars['user-id'], $wp->query_vars['period'] );
+			header( 'Content-Type: application/json' );
+			echo json_encode( array(
+				'data' => $results,
+				'request' => '/' . $wp->request . '?'. $_SERVER['QUERY_STRING'],
+			) );
+			return true;
+		}
+		return false;
 	}
 
 	/**

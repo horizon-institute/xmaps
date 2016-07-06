@@ -238,6 +238,8 @@ add_filter( 'query_vars', function( $vars ) {
 	$vars[] = 'acc';
 	$vars[] = 'user-id';
 	$vars[] = 'collection-id';
+	$vars[] = 'post-id';
+	$vars[] = 'period';
 	return $vars;
 });
 

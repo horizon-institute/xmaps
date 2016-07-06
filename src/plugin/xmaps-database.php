@@ -19,6 +19,8 @@ class XMapsDatabase {
 
 	const LOCATION_LOG_TABLE_SUFFIX = 'xmaps_location_log';
 
+	const FINDS_TABLE_SUFFIX = 'xmaps_finds';
+
 	/**
 	 * Creates custom tables for the specified blog.
 	 *
@@ -28,6 +30,7 @@ class XMapsDatabase {
 		self::create_location_table( $blog_id );
 		self::create_collection_table( $blog_id );
 		self::create_location_log_table( $blog_id );
+		self::create_finds_table( $blog_id );
 	}
 
 	/**
@@ -90,6 +93,28 @@ class XMapsDatabase {
 		collection_id BIGINT(20) NOT NULL,
 		location GEOMETRY,
 		accuracy FLOAT NOT NULL,
+		PRIMARY KEY  (id)
+		)";
+		dbDelta( $sql, true );
+	}
+
+	/**
+	 * Creates the finds table for the specified blog.
+	 *
+	 * @param integer $blog_id Blog id number.
+	 */
+	private static function create_finds_table( $blog_id ) {
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( $blog_id )
+		. self::FINDS_TABLE_SUFFIX;
+		$sql = "
+		CREATE TABLE $tbl_name (
+		id BIGINT(20) NOT NULL AUTO_INCREMENT,
+		user_id BIGINT(20) NOT NULL,
+		timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		app_key VARCHAR(256) NOT NULL,
+		post_id BIGINT(20) NOT NULL,
 		PRIMARY KEY  (id)
 		)";
 		dbDelta( $sql, true );
@@ -272,6 +297,58 @@ class XMapsDatabase {
 		VALUES (%d, \'%s\', %d, ST_GeomFromText(\'%s\'), %f)';
 		$wpdb->query( $wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
 		array( $user_id, $app_key, $collection_id, $location, $accuracy ) ) );
+	}
+
+	/**
+	 * Logs a find.
+	 *
+	 * @param integer $user_id User ID.
+	 * @param string  $app_key User app key.
+	 * @param integer $post_id Post ID.
+	 */
+	public static function log_find( $user_id, $app_key, $post_id ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
+		. self::FINDS_TABLE_SUFFIX;
+		$sql = 'INSERT INTO ' . $tbl_name .
+			' (user_id, app_key, post_id) VALUES (%d, \'%s\', %d)';
+		$wpdb->query( $wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+		array( $user_id, $app_key, $post_id ) ) );
+	}
+
+	/**
+	 * Gets the 'find' history for a user within a time period.
+	 *
+	 * @param integer $user_id User ID.
+	 * @param integer $period Time period in minutes.
+	 * @return array User's 'find' history.
+	 */
+	public static function get_find_history( $user_id, $period ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )
+		. self::FINDS_TABLE_SUFFIX;
+
+		$wpdb->show_errors();
+		$sql = 'SELECT 
+		p.id as ID,
+		p.post_title,
+		p.post_author as author_id,
+		u.display_name,
+		p.post_date_gmt,
+		f.timestamp as found
+		FROM ' . $tbl_name . ' f
+		LEFT JOIN ' . $wpdb->posts . ' p ON f.post_id = p.id
+		LEFT JOIN ' . $wpdb->users . ' u ON p.post_author = u.id
+		WHERE f.user_id = %d
+		AND f.timestamp >= DATE_SUB(NOW(), INTERVAL %d MINUTE)
+		AND p.post_type = \'map-object\'
+		AND p.post_status = \'publish\'
+		ORDER BY p.post_date DESC';
+		$results = $wpdb->get_results( // WPCS: unprepared SQL ok.
+			$wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+			array( $user_id, $period ) )
+		);
+		return $results;
 	}
 }
 ?>
