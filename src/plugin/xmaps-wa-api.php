@@ -276,7 +276,10 @@ class XMapsWAAPI {
 				&& isset( $wp->query_vars['lat'] )
 				&& isset( $wp->query_vars['lon'] )
 				&& isset( $wp->query_vars['acc'] ) ) {
-			// 2.
+			return self::get_all_map_posts_in_collection_with_proximity(
+				$wp->query_vars['collection-id'],
+				$wp->query_vars['lat'],
+			$wp->query_vars['lon']);
 		} else if ( isset( $wp->query_vars['collection-id'] ) ) {
 			return self::get_all_map_posts_in_collection(
 			$wp->query_vars['collection-id'] );
@@ -314,6 +317,59 @@ class XMapsWAAPI {
 					'display_name' => $user->display_name,
 					'post_date_gmt' => $post->post_date_gmt,
 			);
+			$results[] = $obj;
+		}
+		header( 'Content-Type: application/json' );
+		echo json_encode( array(
+				'data' => $results,
+				'request' => '/' . $wp->request . '?'. $_SERVER['QUERY_STRING'],
+		) );
+		return true;
+	}
+
+	/**
+	 * Get all map posts in a collection, including proximity.
+	 *
+	 * @param integer $collection_id Collection ID.
+	 * @param float   $lat Latitude.
+	 * @param float   $lon Longitude.
+	 * @return boolean True if the request was handled.
+	 */
+	private static function get_all_map_posts_in_collection_with_proximity(
+			$collection_id, $lat, $lon ) {
+		$posts = XMapsDatabase::get_collection_map_objects( $collection_id );
+		$results = array();
+		foreach ( $posts as $post ) {
+			$post = $post[0];
+			$user = get_userdata( $post->post_author );
+			$obj = array(
+					'ID' => $post->ID,
+					'post_title' => $post->post_title,
+					'author_id' => $post->post_author,
+					'display_name' => $user->display_name,
+					'post_date_gmt' => $post->post_date_gmt,
+			);
+
+			$closest = null;
+			$closest_dist = null;
+			$locations = XMapsDatabase::get_map_object_locations( $post->ID );
+			$origin = new Point( $lon, $lat );
+			$origin->setSRID( XMAPS_SRID );
+			foreach ( $locations as $location ) {
+				$dest = geoPHP::load( $location->location );
+				$dist = XMapsGeo::distance( $origin, $dest );
+				if ( null == $closest_dist || $dist < $closest_dist ) {
+					$closest = $dest;
+					$closest_dist = $dist;
+				}
+			}
+
+			if ( null != $closest ) {
+				$obj['distance'] = $closest_dist;
+				$obj['bearing'] = XMapsGeo::bearing( $origin, $closest );
+				$obj['type'] = $closest->geometryType();
+			}
+
 			$results[] = $obj;
 		}
 		header( 'Content-Type: application/json' );
