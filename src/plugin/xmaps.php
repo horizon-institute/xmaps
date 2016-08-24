@@ -217,13 +217,17 @@ add_action('wp_ajax_nopriv_xmaps.get_map_objects_in_bounds', function() {
 } );
 
 add_shortcode( 'xmap-objects', function( $attrs ) {
-	$attrs = shortcode_atts( array(
-			'width' => '100%',
-			'height' => '480px',
-	), $attrs );
+	$style = 'style="';
+	if ( isset( $attrs['width'] ) ) {
+		$style .= 'width:' . $attrs['width'] . '; ';
+	}
+	if ( isset( $attrs['height'] ) ) {
+		$style .= 'height:' . $attrs['height'] . ';';
+	}
+	$style .= '"';
+
 	$uuid = UUID::v4();
-	return '<div id="xmap-' . $uuid . '" style="width:' . $attrs['width']
-			. '; height:' . $attrs['height'] . '"></div>
+	return '<div id="xmap-' . $uuid . '" ' . $style . ' class="xmap-objects-map"></div>
 			<script>
 			jQuery(function($) {
 				XMAPS.ObjectXMap($("#xmap-' . $uuid . '"));

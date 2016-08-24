@@ -7,7 +7,7 @@ apt-get install -y mysql-server
 #sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
 mysql -u root -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 service mysql restart
-apt-get install -y apache2 php5-cli libapache2-mod-fastcgi php5-fpm php5-mysql php-pear git
+apt-get install -y apache2 php5-cli libapache2-mod-fastcgi php5-fpm php5-mysql php-pear php5-gd git
 a2enmod actions fastcgi rewrite alias
 cp /vagrant/vagrant/php5-fpm.conf /etc/apache2/conf-available
 cp /vagrant/vagrant/000-default.conf /etc/apache2/sites-available
@@ -56,6 +56,7 @@ if [ ! -e "/var/www/html/wp-config.php" ]; then
   ln -s /vagrant/src/plugin /var/www/html/wp-content/plugins/xmaps
   ln -s /vagrant/src/theme /var/www/html/wp-content/themes/xmaps
   $WP_CLI plugin activate xmaps
+  $WP_CLI theme activate xmaps
   $WP_CLI plugin install \
       https://downloads.wordpress.org/plugin/disable-wordpress-updates.zip --activate
   $WP_CLI plugin delete $($WP_CLI plugin list --status=inactive --field=name)
