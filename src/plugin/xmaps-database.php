@@ -153,6 +153,9 @@ class XMapsDatabase {
 			return $e->comment_ID;
 		}), $comments );
 		$c = count( $comment_ids );
+		if( $c == 0 ) {
+			return array();
+		}
 		$q = implode( ', ', array_fill( 0, count( $comment_ids ), '%d' ) );
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
 		. self::LOCATION_TABLE_SUFFIX;
@@ -248,6 +251,73 @@ class XMapsDatabase {
 			$result->permalink = get_permalink( $result->reference_id );
 		}
 		return $results;
+	}
+	
+	/**
+	 * Searches for map collections within specified bounds.
+	 *
+	 * @param float $north Northmost bound.
+	 * @param float $east Eastmost bound.
+	 * @param float $south Southmost bound.
+	 * @param float $west Westmost bound.
+	 */
+	public static function get_map_collections_in_bounds(
+			$north, $east, $south, $west ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
+		. self::LOCATION_TABLE_SUFFIX;
+		$sql = 'SELECT l.reference_id
+			FROM ' . $tbl_name . ' l
+			WHERE l.reference_type = \'map-object\'
+			AND ST_Intersects(l.location,
+			ST_GeomFromText(\'POLYGON((%f %f, %f %f,
+		%f %f, %f %f, %f %f))\'))';
+		$results = $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
+			array(
+					$west,
+					$south,
+					$east,
+					$south,
+					$east,
+					$north,
+					$west,
+					$north,
+					$west,
+					$south,
+			)
+		), OBJECT );
+		$collections = array();
+		foreach ( $results as $result ) {
+			$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id )
+			. self::COLLECTION_TABLE_SUFFIX;
+			$sql = 'SELECT c.collection_id, p.post_title
+				FROM ' . $tbl_name . ' AS c
+				LEFT JOIN ' . $wpdb->posts . ' p 
+				ON p.id = c.collection_id
+				WHERE map_object_id = %d';
+			$results2 = $wpdb->get_results( // WPCS: unprepared SQL ok.
+				$wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
+					array( $result->reference_id ) ), OBJECT
+			);
+			foreach( $results2 as $r ) {
+				if ( ! array_key_exists( $r->collection_id, $collections )) {
+					$collections[ $r->collection_id ] = $r;
+					$map_objects = XMapsDatabase::get_collection_map_objects( $r->collection_id );
+					$locs = [];
+					foreach ( $map_objects as $mo ) {
+						$mo = $mo[1];
+						$locs[] = $mo->location;
+					}
+					$g = geoPHP::load( 'GEOMETRYCOLLECTION(' 
+							. implode(',', $locs) . ')' ); 
+					$r->location = $g->centroid()->out( 'wkt' );
+				}
+			}
+		}
+		foreach ( $collections as $key => $collection ) {
+			$collection->permalink = get_permalink( $collection->collection_id );
+		}		
+		return $collections;
 	}
 
 	/**

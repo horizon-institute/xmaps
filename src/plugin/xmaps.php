@@ -220,6 +220,14 @@ add_action('wp_ajax_nopriv_xmaps.get_map_objects_in_bounds', function() {
 	XMapsAJAX::get_map_objects_in_bounds();
 } );
 
+add_action('wp_ajax_xmaps.get_map_collections_in_bounds', function() {
+	XMapsAJAX::get_map_collections_in_bounds();
+} );
+
+add_action('wp_ajax_nopriv_xmaps.get_map_collections_in_bounds', function() {
+	XMapsAJAX::get_map_collections_in_bounds();
+} );
+
 add_shortcode( 'xmap-objects', function( $attrs ) {
 	$style = 'style="';
 	if ( isset( $attrs['width'] ) ) {
@@ -238,6 +246,26 @@ add_shortcode( 'xmap-objects', function( $attrs ) {
 			});
 			</script>
 			';
+} );
+
+add_shortcode( 'xmap-collections', function( $attrs ) {
+	$style = 'style="';
+	if ( isset( $attrs['width'] ) ) {
+		$style .= 'width:' . $attrs['width'] . '; ';
+	}
+	if ( isset( $attrs['height'] ) ) {
+		$style .= 'height:' . $attrs['height'] . ';';
+	}
+	$style .= '"';
+
+	$uuid = UUID::v4();
+	return '<div id="xmap-' . $uuid . '" ' . $style . ' class="xmap-collections-map"></div>
+		<script>
+		jQuery(function($) {
+			XMAPS.CollectionXMap($("#xmap-' . $uuid . '"));
+		});
+		</script>
+		';
 } );
 
 add_filter( 'query_vars', function( $vars ) {

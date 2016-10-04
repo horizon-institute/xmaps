@@ -27,7 +27,22 @@ class XMapsAJAX {
 			$north, $east, $south, $west)
 		);
 		exit;
-
+	}
+	
+	/**
+	 * Searches for map collections within specified bounds.
+	 */
+	public static function get_map_collections_in_bounds() {
+		$north = stripslashes_deep( $_REQUEST['data']['north'] );
+		$east = stripslashes_deep( $_REQUEST['data']['east'] );
+		$south = stripslashes_deep( $_REQUEST['data']['south'] );
+		$west = stripslashes_deep( $_REQUEST['data']['west'] );
+		header( 'Content-Type: application/json' );
+		echo json_encode(
+			XMapsDatabase::get_map_collections_in_bounds(
+			$north, $east, $south, $west)
+			);
+		exit;
 	}
 }
 ?>
