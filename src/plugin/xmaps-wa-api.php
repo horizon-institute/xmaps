@@ -370,7 +370,7 @@ class XMapsWAAPI {
 
 			$closest = null;
 			$closest_dist = null;
-			$locations = XMapsDatabase::get_map_object_locations( $post->ID );
+			$locations = XMapsDatabase::get_map_object_locations( $post->ID, 'map-object' );
 			$origin = new Point( $lon, $lat );
 			$origin->setSRID( XMAPS_SRID );
 			foreach ( $locations as $location ) {
@@ -479,7 +479,7 @@ class XMapsWAAPI {
 
 		$closest = null;
 		$closest_dist = null;
-		$locations = XMapsDatabase::get_map_object_locations( $post->ID );
+		$locations = XMapsDatabase::get_map_object_locations( $post->ID, 'map-object' );
 		$origin = new Point( $lon, $lat );
 		$origin->setSRID( XMAPS_SRID );
 		foreach ( $locations as $location ) {

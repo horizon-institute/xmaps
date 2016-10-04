@@ -68,24 +68,11 @@ if ( ! function_exists( 'xmaps_setup' ) ) :
 endif;
 add_action( 'after_setup_theme', 'xmaps_setup' );
 
-/**
- * Set the content width in pixels, based on the theme's design and stylesheet.
- *
- * Priority 0 to make it available to lower priority callbacks.
- *
- * @global int $content_width
- */
-function xmaps_content_width() {
+add_action( 'after_setup_theme', function () {
 	$GLOBALS['content_width'] = apply_filters( 'xmaps_content_width', 640 );
-}
-add_action( 'after_setup_theme', 'xmaps_content_width', 0 );
+}, 0 );
 
-/**
- * Register widget area.
- *
- * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
- */
-function xmaps_widgets_init() {
+add_action( 'widgets_init', function () {
 	register_sidebar( array(
 		'name'          => esc_html__( 'Sidebar', 'xmaps' ),
 		'id'            => 'sidebar-1',
@@ -95,26 +82,77 @@ function xmaps_widgets_init() {
 		'before_title'  => '<h2 class="widget-title">',
 		'after_title'   => '</h2>',
 	) );
-}
-add_action( 'widgets_init', 'xmaps_widgets_init' );
+} );
 
-/**
- * Enqueue scripts and styles.
- */
-function xmaps_scripts() {
+add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_style( 'xmaps-style', get_stylesheet_uri() );
-
 	wp_enqueue_style( 'xmaps-style-layout', get_template_directory_uri() . '/layouts/content-sidebar.css' );
-
 	wp_enqueue_script( 'xmaps-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
-
 	wp_enqueue_script( 'xmaps-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20151215', true );
-
+	wp_enqueue_script( 'jquery-scrollto',
+	'//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js', array( 'jquery' ), '2.1.0', true );
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
-}
-add_action( 'wp_enqueue_scripts', 'xmaps_scripts' );
+} );
+
+add_action( 'wp_insert_comment', function( $comment_id, $comment_object ) {
+	if ( array_key_exists( 'xmaps-location-entry' , $_POST ) ) {
+		$location = wp_filter_nohtml_kses( $_POST['xmaps-location-entry'] );
+		if ( $comment_object->comment_approved ) {
+			XMapsDatabase::add_or_update_map_object_location(
+				$comment_id,
+				'map-object-comment',
+			$location );
+		} else {
+			update_comment_meta( $comment_id, 'xmaps-location', $location );
+		}
+	}
+}, 99, 2 );
+
+add_action( 'comment_unapproved_to_approved', function( $comment ) {
+	$location = get_comment_meta( $comment->comment_ID, 'xmaps-location', true );
+	if ( false !== $location ) {
+		XMapsDatabase::add_or_update_map_object_location(
+			$comment->comment_ID,
+			'map-object-comment',
+		$location );
+	}
+} );
+
+add_action( 'trashed_comment', function( $cid ) {
+	XMapsDatabase::delete_map_object_location( $cid, 'map-object-comment' );
+} );
+
+add_action( 'comment_form_logged_in_after', function() {
+	?><input id="xmaps-location-entry" name="xmaps-location-entry" type="hidden" />
+		<div id="xmaps-controls">
+			Drawing mode:
+			<select id="xmaps-controls-mode">
+				<option value="point">Point</option>
+				<option value="area">Area</option>
+			</select>
+			<button id="xmaps-controls-draw">Draw</button>
+			<button id="xmaps-controls-clear">Clear Map</button>
+		</div>
+		<div id="comment-map"></div><?php
+} );
+
+add_filter( 'comment_form_default_fields', function( $fields ) {
+	$fields['location'] = '
+ 		<input id="xmaps-location-entry" name="xmaps-location-entry" type="hidden" />
+		<div id="xmaps-controls">
+			Drawing mode:
+			<select id="xmaps-controls-mode">
+				<option value="point">Point</option>
+				<option value="area">Area</option>
+			</select>
+			<button id="xmaps-controls-draw">Draw</button>
+			<button id="xmaps-controls-clear">Clear Map</button>
+		</div>
+		<div id="comment-map"></div>';
+	return $fields;
+} );
 
 /**
  * Implement the Custom Header feature.

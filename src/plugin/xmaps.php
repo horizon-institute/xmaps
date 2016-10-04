@@ -46,6 +46,8 @@ register_activation_hook( __FILE__,  function() {
 			XMapsDatabase::create_tables( $site['blog_id'] );
 		}
 	}
+	XMapsPostType::register_post_types();
+	flush_rewrite_rules();
 } );
 
 add_action( 'wpmu_new_blog', function( $blog_id ) {
@@ -202,9 +204,11 @@ add_action( 'wp_enqueue_scripts', function() {
 			'pluginurl' => plugin_dir_url( __FILE__ ),
 		) );
 		wp_enqueue_script( 'xmaps-map' );
-		wp_enqueue_script( 'jquery-ui-dialog' );
-		wp_enqueue_style( 'jquery-ui-black-tie',
-		'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/black-tie/jquery-ui.min.css' );
+
+		wp_enqueue_style( 'jbox',
+		'https://cdnjs.cloudflare.com/ajax/libs/jBox/0.3.2/jBox.min.css' );
+		wp_enqueue_script( 'jbox',
+		'https://cdnjs.cloudflare.com/ajax/libs/jBox/0.3.2/jBox.min.js' );
 	}
 } );
 

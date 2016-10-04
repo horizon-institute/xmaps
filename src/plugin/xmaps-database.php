@@ -124,17 +124,43 @@ class XMapsDatabase {
 	 * Gets map object locations.
 	 *
 	 * @param integer $reference_id Map object reference id.
+	 * @param integer $reference_type Map object reference type.
 	 * @return array Map object locations.
 	 */
-	public static function get_map_object_locations( $reference_id ) {
+	public static function get_map_object_locations( $reference_id, $reference_type ) {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
 		. self::LOCATION_TABLE_SUFFIX;
 		$sql = 'SELECT id, reference_id, reference_type, 
 			ST_AsText(location) AS location
-		FROM ' . $tbl_name . ' WHERE reference_id = %d';
+		FROM ' . $tbl_name . ' WHERE reference_id = %d AND reference_type = %s';
 		return $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
-		array( $reference_id ) ), OBJECT );
+		array( $reference_id, $reference_type ) ), OBJECT );
+	}
+
+	/**
+	 * Get map object comment locations.
+	 *
+	 * @param integer $map_object_id Maps object ID.
+	 * @return array Map object comment locations.
+	 */
+	public static function get_map_object_comment_locations( $map_object_id ) {
+		global $wpdb;
+		$comments = get_comments( array(
+			'post_id' => $map_object_id,
+		) );
+		$comment_ids = array_map( (function( $e ) {
+			return $e->comment_ID;
+		}), $comments );
+		$c = count( $comment_ids );
+		$q = implode( ', ', array_fill( 0, count( $comment_ids ), '%d' ) );
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
+		. self::LOCATION_TABLE_SUFFIX;
+		$sql = 'SELECT id, reference_id, reference_type,
+			ST_AsText(location) AS location
+		FROM ' . $tbl_name . ' WHERE reference_id IN (' . $q . ')';
+		return $wpdb->get_results( $wpdb->prepare($sql, // WPCS: unprepared SQL ok.
+		$comment_ids ), OBJECT );
 	}
 
 	/**
@@ -151,7 +177,10 @@ class XMapsDatabase {
 		global $wpdb;
 		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
 		. self::LOCATION_TABLE_SUFFIX;
-		$wpdb->delete( $tbl_name, array( 'reference_id' => $reference_id ),
+		$wpdb->delete( $tbl_name, array(
+				'reference_id' => $reference_id,
+				'reference_type' => $reference_type,
+			),
 		array( '%d' ) );
 		if ( empty( $location ) ) {
 			return;
@@ -161,6 +190,24 @@ class XMapsDatabase {
 		VALUES (%d, \'%s\', ST_GeomFromText(\'%s\'))';
 		$wpdb->query( $wpdb->prepare( $sql, // WPCS: unprepared SQL ok.
 		array( $reference_id, $reference_type, $location ) ) );
+	}
+
+	/**
+	 * Deletes map object locations.
+	 *
+	 * @param integer $reference_id Map object reference ID.
+	 * @param string  $reference_type Map object reference type.
+	 */
+	public static function delete_map_object_location( $reference_id, $reference_type ) {
+		global $wpdb;
+		$tbl_name = $wpdb->get_blog_prefix( get_current_blog_id() )
+		. self::LOCATION_TABLE_SUFFIX;
+		$wpdb->delete( $tbl_name,
+			array(
+				'reference_id' => $reference_id,
+				'reference_type' => $reference_type,
+			), array( '%d', '%s' )
+		);
 	}
 
 	/**
@@ -278,7 +325,7 @@ class XMapsDatabase {
 		foreach ( $ids as $id ) {
 			$result[] = array(
 					get_post( $id ),
-					self::get_map_object_locations( $id )[0],
+					self::get_map_object_locations( $id, 'map-object' )[0],
 			);
 		}
 		return $result;

@@ -8,7 +8,7 @@
  * @link https://github.com/horizon-institute/xmaps
  */
 
-$locations = XMapsDatabase::get_map_object_locations( get_the_ID() );
+$locations = XMapsDatabase::get_map_object_locations( get_the_ID(), 'map-object' );
 $location = '';
 if ( ! empty( $locations ) ) {
 	$location = $locations[0];

@@ -33,23 +33,33 @@ XMAPS.ObjectXMap = function( element ) {
 		var map = new google.maps.Map( element.get( 0 ), mapconf );
 		var clusterer = new MarkerClusterer( map, [], clusterconf );
 		google.maps.event.addListener( clusterer, "clusterclick", function( cluster ) {
-			var dialog = $( document.createElement( 'div' ) );
-			dialog.attr( "id", "xmaps-map-overlay" );
-			var ul = $( document.createElement( 'ul' ) );
-			dialog.append( ul );
-			dialog.css( {
-				"overflow" : "scroll"
-			} );
-			dialog.dialog( {
-				"modal" : true,
-				"width" : ( $( window ).width() * 0.9 ),
-				"height" : ( $( window ).height() * 0.9 )
-			} );
-			$.each(cluster.getMarkers(), function(i, e) {
-				var mo = e.map_object;
-				ul.append( $("<li><a href=\"" + mo.permalink
-				+ "\">" + mo.post_title + "</a></li>") );
-			});
+			if ( ! cluster.jbox ) {
+				var ul = $( document.createElement( 'ul' ) );
+				ul.addClass( "xmap-object-list" );
+				$.each(cluster.getMarkers(), function(i, e) {
+					var mo = e.map_object;
+					ul.append( $("<li><a href=\"" + mo.permalink
+					+ "\">" + mo.post_title + "</a></li>") );
+				});
+				cluster.jbox = new jBox( "Tooltip", {
+					"content" : ul,
+					"trigger" : "click",
+					"closeOnClick" : "body",
+					"closeButton" : "box",
+					"animation" : "move",
+					"zIndex" : 8000,
+					"position" : {
+						"x" : "left",
+						"y" : "top"
+					},
+					"outside" : "y",
+					"offset" : {
+						"x" : 25
+					},
+					"target" : $( cluster.clusterIcon_.div_ )
+				} );
+			}
+			cluster.jbox.toggle();
 		} );
 
 		(function() {
@@ -83,6 +93,9 @@ XMAPS.ObjectXMap = function( element ) {
 						clusterer.clearMarkers();
 						var markers = [];
 						$.each(data, function( i, e ) {
+							if ( e.reference_type != "map-object" ) {
+								return;
+							}
 							var wkt = new Wkt.Wkt();
 							wkt.read( e.location );
 							var m = wkt.toObject();
