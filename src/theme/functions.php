@@ -85,6 +85,10 @@ add_action( 'widgets_init', function () {
 } );
 
 add_action( 'wp_enqueue_scripts', function () {
+	wp_enqueue_style( 'jbox',
+			'https://cdnjs.cloudflare.com/ajax/libs/jBox/0.3.2/jBox.min.css' );
+	wp_enqueue_script( 'jbox',
+			'https://cdnjs.cloudflare.com/ajax/libs/jBox/0.3.2/jBox.min.js' );
 	wp_enqueue_style( 'xmaps-style', get_stylesheet_uri() );
 	wp_enqueue_style( 'xmaps-style-layout', get_template_directory_uri() . '/layouts/content-sidebar.css' );
 	wp_enqueue_script( 'xmaps-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
