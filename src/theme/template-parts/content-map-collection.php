@@ -93,6 +93,9 @@
 									"x" : xy.x,
 									"y" : xy.y
 								},
+								"onClose" : function() {
+									marker.jbox = null;
+								}
 							} );
 						}
 						marker.jbox.toggle();
