@@ -125,6 +125,7 @@ add_action( 'trashed_comment', function( $cid ) {
 } );
 
 add_action( 'comment_form_logged_in_after', function() {
+	if ( get_post_type() == 'map-object' ) {
 	?><input id="xmaps-location-entry" name="xmaps-location-entry" type="hidden" />
 		<div id="xmaps-controls">
 			Drawing mode:
@@ -136,21 +137,24 @@ add_action( 'comment_form_logged_in_after', function() {
 			<button id="xmaps-controls-clear">Clear Map</button>
 		</div>
 		<div id="comment-map"></div><?php
+	}
 } );
 
 add_filter( 'comment_form_default_fields', function( $fields ) {
-	$fields['location'] = '
- 		<input id="xmaps-location-entry" name="xmaps-location-entry" type="hidden" />
-		<div id="xmaps-controls">
-			Drawing mode:
-			<select id="xmaps-controls-mode">
-				<option value="point">Point</option>
-				<option value="area">Area</option>
-			</select>
-			<button id="xmaps-controls-draw">Draw</button>
-			<button id="xmaps-controls-clear">Clear Map</button>
-		</div>
-		<div id="comment-map"></div>';
+	if ( get_post_type() == 'map-object' ) {
+		$fields['location'] = '
+	 		<input id="xmaps-location-entry" name="xmaps-location-entry" type="hidden" />
+			<div id="xmaps-controls">
+				Drawing mode:
+				<select id="xmaps-controls-mode">
+					<option value="point">Point</option>
+					<option value="area">Area</option>
+				</select>
+				<button id="xmaps-controls-draw">Draw</button>
+				<button id="xmaps-controls-clear">Clear Map</button>
+			</div>
+			<div id="comment-map"></div>';
+	}
 	return $fields;
 } );
 
