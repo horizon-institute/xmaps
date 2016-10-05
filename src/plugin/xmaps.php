@@ -282,7 +282,7 @@ add_filter( 'query_vars', function( $vars ) {
 });
 
 add_action( 'parse_request', function( $wp ) {
-	if ( strpos( $wp->request, 'api/' ) === 0 ) {
+	if ( strpos( $wp->request, 'xmaps-api/' ) === 0 ) {
 		if ( XMapsWAAPI::parse_request( $wp ) ) {
 			exit();
 		}
