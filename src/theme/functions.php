@@ -162,6 +162,17 @@ add_filter( 'comment_form_default_fields', function( $fields ) {
 	return $fields;
 } );
 
+add_action( 'parse_request', function( $wp ) {
+	if ( strpos( $wp->request, 'xmaps-browser/' ) === 0 ) {
+		$page = array_pop( explode( '/',parse_url($wp->request, PHP_URL_PATH) ) );
+		$path = get_stylesheet_directory() . '/browser/' . $page . '.php';
+		if ( file_exists( $path ) ) {
+			include $path;
+			exit();
+		}
+	}
+} );
+
 /**
  * Implement the Custom Header feature.
  */

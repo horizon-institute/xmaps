@@ -8,10 +8,12 @@ apt-get install -y mysql-server
 mysql -u root -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 service mysql restart
 apt-get install -y apache2 php5-cli libapache2-mod-fastcgi php5-fpm php5-mysql php-pear php5-gd git
-a2enmod actions fastcgi rewrite alias
+a2enmod actions fastcgi rewrite alias ssl
 cp /vagrant/vagrant/php5-fpm.conf /etc/apache2/conf-available
 cp /vagrant/vagrant/000-default.conf /etc/apache2/sites-available
+cp /vagrant/vagrant/default-ssl.conf /etc/apache2/sites-available
 a2enconf php5-fpm
+a2ensite default-ssl
 service apache2 reload
 if [ ! -e "/usr/local/bin/phpunit" ]; then
   curl -sSL -O https://phar.phpunit.de/phpunit.phar

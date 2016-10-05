@@ -105,7 +105,7 @@ class XMapsWAAPI {
 		if ( ! $post ) {
 			return false;
 		}
-		$e = $c->post_content;
+		$e = $post->post_content;
 		if ( ! empty( $post->post_excerpt ) ) {
 			$e = $post->post_excerpt;
 		}
@@ -153,10 +153,11 @@ class XMapsWAAPI {
 		if ( ! $post ) {
 			return false;
 		}
-		$e = $c->post_content;
+		$e = $post->post_content;
 		if ( ! empty( $post->post_excerpt ) ) {
 			$e = $post->post_excerpt;
 		}
+		
 		$r = array(
 				'term_id' => $post->ID,
 				'name' => $post->post_title,
@@ -313,6 +314,7 @@ class XMapsWAAPI {
 		$posts = XMapsDatabase::get_collection_map_objects( $collection_id );
 		$results = array();
 		foreach ( $posts as $post ) {
+			$geo = $post[1];
 			$post = $post[0];
 			$user = get_userdata( $post->post_author );
 			$obj = array(
@@ -321,6 +323,7 @@ class XMapsWAAPI {
 					'author_id' => $post->post_author,
 					'display_name' => $user->display_name,
 					'post_date_gmt' => $post->post_date_gmt,
+					'location_wkt' => $geo->location,
 			);
 
 			if ( isset( $wp->query_vars['user-id'] )
@@ -358,6 +361,7 @@ class XMapsWAAPI {
 		$posts = XMapsDatabase::get_collection_map_objects( $collection_id );
 		$results = array();
 		foreach ( $posts as $post ) {
+			$geo = $post[1];
 			$post = $post[0];
 			$user = get_userdata( $post->post_author );
 			$obj = array(
@@ -366,6 +370,7 @@ class XMapsWAAPI {
 					'author_id' => $post->post_author,
 					'display_name' => $user->display_name,
 					'post_date_gmt' => $post->post_date_gmt,
+					'location_wkt' => $geo->location,
 			);
 
 			$closest = null;
@@ -423,6 +428,12 @@ class XMapsWAAPI {
 		}
 
 		$user = get_userdata( $post->post_author );
+		
+		$geo = XMapsDatabase::get_map_object_locations( $post_id, 'map-object' );
+		$wkt = '';
+		if ( count( $geo ) > 0 ) {
+			$wkt = $geo[0]->location;
+		}
 
 		$obj = array(
 				'ID' => $post->ID,
@@ -430,6 +441,7 @@ class XMapsWAAPI {
 				'author_id' => $post->post_author,
 				'display_name' => $user->display_name,
 				'post_date_gmt' => $post->post_date_gmt,
+				'location_wkt' => $geo->location,
 		);
 
 		if ( isset( $wp->query_vars['user-id'] )
@@ -489,6 +501,11 @@ class XMapsWAAPI {
 				$closest = $dest;
 				$closest_dist = $dist;
 			}
+		}
+		
+		$wkt = '';
+		if ( count( $locations ) > 0 ) {
+			$obj->location_wkt = $locations[0]->location;
 		}
 
 		if ( null != $closest ) {
