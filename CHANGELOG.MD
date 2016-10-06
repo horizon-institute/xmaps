@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [0.1.0] - 2016-10-06
+## 0.1.0 - 2016-10-06
 ### Added
 - The initial working release.
 - Includes the main functionalities of ArtMaps and Wander/Anywhere
