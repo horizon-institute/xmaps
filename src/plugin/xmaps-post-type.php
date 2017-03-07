@@ -123,7 +123,7 @@ class XMapsPostType {
 				'excerpt',
 				'thumbnail',
 			),
-			'taxonomies' => array( 'xmap_tags' ),
+			'taxonomies' => array( 'xmap_tags', 'category' ),
 			'hierarchical' => false,
 			'public' => true,
 			'show_ui' => true,
