@@ -29,6 +29,11 @@ repository to this new directory. The theme is deliberately basic and it is
 recommended that you clone the theme and modify it according to your needs, it
 is however enough to get you up and running quickly.
 
+Once installed and the plugin and theme are activated through the Wordpress
+administrative interface, you will have an extra option on the *Settings* menu
+called *xMaps*. Currently the only setting that is needed is a valid Google Maps
+API key.
+
 ## Development setup
 
 [Vagrant](https://www.vagrantup.com/) is used for development. To get started, 
@@ -36,7 +41,11 @@ copy the ``vagrant/config.rb.example`` file to ``vagrant/config.rb`` and
 edit the contents to your own needs. At present, the only configuration
 setting is the IP address, the Vagrant box uses this as a static IP so that
 the server can easily be found via this IP. Once ``vagrant up`` has completed,
-you can find the xMaps development install at that IP address.
+you can find the xMaps development install at that IP address. See the
+*Installation* section above for setting required configuration values. As
+the source folder is mounted directly inside the Vagrant box, all changes to
+source files will be immediately visible on the development Wordpress instance
+inside the box.
 
 ## Meta
 
