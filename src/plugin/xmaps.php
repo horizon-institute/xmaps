@@ -136,7 +136,7 @@ add_action( 'admin_enqueue_scripts', function() {
 	if ( $akey ) {
 		wp_register_script(
 			'xmaps-google-maps',
-			"https://maps.googleapis.com/maps/api/js?key=$akey",
+			"https://maps.googleapis.com/maps/api/js?libraries=places&key=$akey",
 			false,
 			'1.0.0',
 		true );
