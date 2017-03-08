@@ -22,6 +22,8 @@ if ( ! empty( $locations ) ) {
 	</select>
 	<button id="xmaps-controls-draw">Draw</button>
 	<button id="xmaps-controls-clear">Clear Map</button>
+	<input id="xmaps-controls-search" type="text" 
+			placeholder="Search for a place...">
 </div>
 <input type="hidden" name="xmaps-location-entry" id="xmaps-location-entry" 
 		value="<?php echo esc_attr( $location->location ); ?>" />
@@ -50,6 +52,12 @@ jQuery( function( $ ) {
 			markers.push(marker);
 		}
 
+        var search_box = new google.maps.places.SearchBox(
+                $("#xmaps-controls-search"));
+        map.addListener('bounds_changed', function() {
+            search_box.setBounds(map.getBounds());
+        });
+        
 		var clear_map = function() {
 			google.maps.event.clearInstanceListeners(map);
 			$.each(markers, function(i, e) {
