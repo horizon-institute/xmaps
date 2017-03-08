@@ -53,7 +53,7 @@ jQuery( function( $ ) {
 		}
 
         var search_box = new google.maps.places.SearchBox(
-                $("#xmaps-controls-search"));
+                $("#xmaps-controls-search").get(0));
         map.addListener('bounds_changed', function() {
             search_box.setBounds(map.getBounds());
         });
