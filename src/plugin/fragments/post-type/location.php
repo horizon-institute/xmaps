@@ -57,6 +57,17 @@ jQuery( function( $ ) {
         map.addListener('bounds_changed', function() {
             search_box.setBounds(map.getBounds());
         });
+        search_box.addListener('places_changed', function() {
+            var places = search_box.getPlaces();
+            if (places.length == 0) {
+            	return;
+            }
+            var place = places[0];
+            if(!place.geometry) {
+                return;
+            }
+            map.setCenter(place.geometry.location);            
+        });
         
 		var clear_map = function() {
 			google.maps.event.clearInstanceListeners(map);
