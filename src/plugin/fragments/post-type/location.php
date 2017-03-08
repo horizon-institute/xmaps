@@ -66,7 +66,8 @@ jQuery( function( $ ) {
             if(!place.geometry) {
                 return;
             }
-            map.setCenter(place.geometry.location);            
+            map.setCenter(place.geometry.location);
+            map.setZoom(15);           
         });
         
 		var clear_map = function() {
