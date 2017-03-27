@@ -237,12 +237,20 @@ add_shortcode( 'xmap-objects', function( $attrs ) {
 		$style .= 'height:' . $attrs['height'] . ';';
 	}
 	$style .= '"';
+	$mapconf = '{}';
+	if ( isset( $attrs['mapconf'] ) ) {
+		$mapconf = $attrs['mapconf'];
+	}
+	$clusterconf = '{}';
+	if ( isset( $attrs['clusterconf'] ) ) {
+		$clusterconf = $attrs['clusterconf'];
+	}
 
 	$uuid = UUID::v4();
 	return '<div id="xmap-' . $uuid . '" ' . $style . ' class="xmap-objects-map"></div>
 			<script>
 			jQuery(function($) {
-				XMAPS.ObjectXMap($("#xmap-' . $uuid . '"));
+				XMAPS.ObjectXMap($("#xmap-' . $uuid . '"), ' . $mapconf . ', ' . $clusterconf . ');
 			});
 			</script>
 			';

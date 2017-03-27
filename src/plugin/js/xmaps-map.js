@@ -9,10 +9,18 @@
 
 var XMAPS = XMAPS || {}
 
-XMAPS.ObjectXMap = function( element ) {
+XMAPS.ObjectXMap = function( element, mapconf, clusterconf ) {
 	jQuery( function( $ ) {
 
-		var mapconf = {
+		if ( mapconf === undefined ) {
+			mapconf = {};
+		}
+
+		if ( clusterconf === undefined ) {
+			clusterconf = {};
+		}
+
+		mapconf = $.extend( {
 			"center": new google.maps.LatLng( 0, 0 ),
 			"streetViewControl": false,
 			"zoom": 1,
@@ -20,15 +28,15 @@ XMAPS.ObjectXMap = function( element ) {
 			"mapTypeId": google.maps.MapTypeId.TERRAIN,
 			"panControl": true,
 			"mapTypeControl": true
-		};
+		}, mapconf );
 
-		var clusterconf = {
+		clusterconf = $.extend( {
 			"gridSize": 100,
 			"averageCenter": true,
 			"minimumClusterSize": 1,
 			"zoomOnClick": false,
 			"imagePath" : XMAPS.pluginurl + "images/m"
-		};
+		}, clusterconf );
 
 		var map = new google.maps.Map( element.get( 0 ), mapconf );
 		var clusterer = new MarkerClusterer( map, [], clusterconf );
