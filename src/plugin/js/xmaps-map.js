@@ -107,7 +107,6 @@ XMAPS.ObjectXMap = function( element, mapconf, clusterconf ) {
 							var wkt = new Wkt.Wkt();
 							wkt.read( e.location );
 							var m = wkt.toObject();
-							m.map_object = e;
 							if ( m instanceof google.maps.Polygon ) {
 								var bounds = new google.maps.LatLngBounds()
 								m.getPath().forEach( function( element, index ) { bounds.extend( element ) } );
@@ -115,6 +114,14 @@ XMAPS.ObjectXMap = function( element, mapconf, clusterconf ) {
 									"position" : bounds.getCenter()
 								});
 							}
+							m.map_object = e;
+							var iw = new google.maps.InfoWindow( {
+								"content" : "<ul><li><a href=\"" + e.permalink
+										+ "\">" + e.post_title + "</a></li></ul>"
+							} );
+							m.addListener( 'click', function() {
+								iw.open(map, m);
+							});
 							markers.push( clusterer.addMarker( m ) );
 						});
 					}
